@@ -1,0 +1,260 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:1.5rem 0}
+h1{font-size:22px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.subtitle{font-size:13px;color:var(--color-text-tertiary);margin-bottom:1.25rem}
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.toolbar input[type=text]{flex:1;min-width:160px;font-size:13px;height:32px;padding:0 10px}
+.toolbar select{font-size:13px;height:32px;padding:0 8px}
+.toolbar button{font-size:13px;padding:0 14px;height:32px;white-space:nowrap}
+.tbl-wrap{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+col.cn{width:28%}col.co{width:28%}col.cs{width:14%}col.cp{width:12%}col.cd{width:12%}col.ca{width:6%}
+thead th{font-size:12px;font-weight:500;color:var(--color-text-secondary);text-align:left;padding:8px 10px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);cursor:pointer;user-select:none}
+thead th:hover{color:var(--color-text-primary)}
+.proj-row td{padding:9px 10px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);vertical-align:top;font-size:13px;color:var(--color-text-primary)}
+.proj-row:hover td{background:var(--color-background-secondary)}
+.sub-row td{padding:5px 10px 5px 32px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;color:var(--color-text-secondary)}
+.add-sub-row td{padding:4px 10px 4px 32px;background:var(--color-background-secondary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.name-cell{display:flex;align-items:flex-start;gap:5px}
+.tog{background:none;border:none;cursor:pointer;font-size:10px;color:var(--color-text-tertiary);padding:0;line-height:1.6;min-width:12px;transition:transform 0.15s;flex-shrink:0;margin-top:2px}
+.tog.open{transform:rotate(90deg)}
+.sbadge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.s-done{background:#EAF3DE;color:#27500A}
+.s-prog{background:#E6F1FB;color:#0C447C}
+.s-not{background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.sdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-done{background:#3B6D11}.dot-prog{background:#185FA5}.dot-not{background:var(--color-text-tertiary)}
+.pbadge{font-size:11px;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.p-high{background:#FCEBEB;color:#791F1F}
+.p-med{background:#FAEEDA;color:#633806}
+.p-low{background:#EAF3DE;color:#27500A}
+.p-none{color:var(--color-text-tertiary);font-size:11px}
+.sub-check{accent-color:#3B6D11;width:13px;height:13px;cursor:pointer;flex-shrink:0}
+.sub-label{display:flex;align-items:center;gap:7px}
+.sub-done{text-decoration:line-through;color:var(--color-text-tertiary)}
+.act-btn{background:none;border:none;cursor:pointer;font-size:12px;color:var(--color-text-tertiary);padding:2px 4px;border-radius:4px}
+.act-btn:hover{color:var(--color-text-primary);background:var(--color-background-secondary)}
+.add-row{display:flex;align-items:center;gap:6px;padding:9px 10px;font-size:13px;color:var(--color-text-tertiary);cursor:pointer;background:var(--color-background-primary)}
+.add-row:hover{color:var(--color-text-secondary)}
+.add-sub-btn{font-size:11px;color:var(--color-text-tertiary);cursor:pointer;background:none;border:none;padding:2px 4px}
+.add-sub-btn:hover{color:var(--color-text-secondary)}
+.progress-bar{height:4px;background:var(--color-border-tertiary);border-radius:2px;margin-top:4px;overflow:hidden}
+.progress-fill{height:100%;background:#3B6D11;border-radius:2px;transition:width 0.2s}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px}
+.stat-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:2px}
+.stat-val{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.edit-input{border:none;outline:none;background:transparent;font-size:13px;color:var(--color-text-primary);font-family:var(--font-sans);width:100%;border-bottom:1px solid var(--color-border-secondary)}
+.date-chip{font-size:11px;color:var(--color-text-tertiary)}
+.date-overdue{color:#A32D2D}
+.notes-cell{font-size:12px;color:var(--color-text-secondary);line-height:1.4;word-break:break-word}
+.notes-link{color:var(--color-text-info);word-break:break-all}
+</style>
+
+<div class="wrap">
+<h2 class="sr-only">Persistent To-Do List with projects, subtasks, priority, and due dates</h2>
+<h1>To-Do List</h1>
+<p class="subtitle">Your data is saved automatically in this browser.</p>
+
+<div class="stats" id="stats"></div>
+
+<div class="toolbar">
+  <input type="text" id="new-proj" placeholder="New project name..." onkeydown="if(event.key==='Enter')addProject()">
+  <select id="new-status"><option value="not">Not started</option><option value="prog">In progress</option><option value="done">Done</option></select>
+  <select id="new-priority"><option value="">No priority</option><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select>
+  <input type="date" id="new-due" style="font-size:13px;height:32px;padding:0 8px">
+  <button onclick="addProject()">+ Add project</button>
+</div>
+
+<div class="tbl-wrap">
+<table id="main-table">
+  <colgroup><col class="cn"><col class="co"><col class="cs"><col class="cp"><col class="cd"><col class="ca"></colgroup>
+  <thead>
+    <tr>
+      <th onclick="sortBy('name')">Name <span id="sort-name"></span></th>
+      <th>Notes</th>
+      <th onclick="sortBy('status')">Status <span id="sort-status"></span></th>
+      <th onclick="sortBy('priority')">Priority <span id="sort-priority"></span></th>
+      <th onclick="sortBy('due')">Due <span id="sort-due"></span></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+</div>
+</div>
+
+<script>
+const STORE_KEY = 'todo_tracker_v2';
+let sortCol = null, sortDir = 1;
+
+const defaultData = [
+  {id:1,name:"Arena Super User - Items World",status:"done",priority:"",due:"",notes:"Resources:",links:[{label:"Items World Overview - Why Items Matter?",url:"#"},{label:"Item World Overview Slide Deck",url:"#"}],subtasks:[{id:101,text:"Review Items World overview doc",done:true},{id:102,text:"Complete super user certification",done:true}],open:false},
+  {id:2,name:"Pop 7 Visual Guide",status:"not",priority:"",due:"",notes:"",links:[{label:"Slack thread",url:"https://billiontoone.slack.com/archives/C0ARM4F6T5K/p1776291399025889"}],subtasks:[],open:false},
+  {id:3,name:"Comp Proj",status:"not",priority:"",due:"",notes:"Send out meeting invites",links:[{label:"Slack thread",url:"https://billiontoone.slack.com/archives/C0A3UFJDDEF/p1776281899095789"}],subtasks:[{id:301,text:"Send out meeting invites",done:false},{id:302,text:"Prepare agenda",done:false}],open:false},
+  {id:4,name:"Support Capacity Planning",status:"not",priority:"",due:"",notes:"Do sgV2 HT → seq, sgPLUS HT → seq\nAssist with FX",links:[{label:"Lucidchart diagram",url:"https://lucid.app/lucidchart/8ed244be-6e02-4ebb-8d97-dec33b363f16/edit"}],subtasks:[{id:401,text:"Do sgV2 HT → seq",done:false},{id:402,text:"Do sgPLUS HT → seq",done:false},{id:403,text:"Assist with FX",done:false}],open:false}
+];
+
+function load(){try{const d=localStorage.getItem(STORE_KEY);return d?JSON.parse(d):JSON.parse(JSON.stringify(defaultData))}catch{return JSON.parse(JSON.stringify(defaultData))}}
+function save(){try{localStorage.setItem(STORE_KEY,JSON.stringify(projects))}catch(e){}}
+
+let projects = load();
+let nextId = Math.max(...projects.map(p=>p.id),100)+1;
+let nextSub = Math.max(...projects.flatMap(p=>p.subtasks.map(s=>s.id)),9000)+1;
+
+function statusBadge(s){
+  if(s==='done') return `<span class="sbadge s-done"><span class="sdot dot-done"></span>Done</span>`;
+  if(s==='prog') return `<span class="sbadge s-prog"><span class="sdot dot-prog"></span>In progress</span>`;
+  return `<span class="sbadge s-not"><span class="sdot dot-not"></span>Not started</span>`;
+}
+function priorityBadge(p){
+  if(p==='high') return `<span class="pbadge p-high">High</span>`;
+  if(p==='med') return `<span class="pbadge p-med">Medium</span>`;
+  if(p==='low') return `<span class="pbadge p-low">Low</span>`;
+  return `<span class="p-none">—</span>`;
+}
+function dueChip(d){
+  if(!d) return '—';
+  const today = new Date().toISOString().split('T')[0];
+  const cls = d < today ? 'date-chip date-overdue' : 'date-chip';
+  const parts = d.split('-');
+  return `<span class="${cls}">${parts[1]}/${parts[2]}/${parts[0].slice(2)}</span>`;
+}
+function subProgress(p){
+  if(!p.subtasks.length) return '';
+  const done = p.subtasks.filter(s=>s.done).length;
+  const pct = Math.round(done/p.subtasks.length*100);
+  return `<div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>`;
+}
+
+function render(){
+  save();
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML='';
+  let list = [...projects];
+  if(sortCol){
+    const order={done:2,prog:1,not:0};
+    const pord={high:3,med:2,low:1,'':0};
+    list.sort((a,b)=>{
+      let av=a[sortCol]||'', bv=b[sortCol]||'';
+      if(sortCol==='status'){av=order[av]||0;bv=order[bv]||0;}
+      if(sortCol==='priority'){av=pord[av]||0;bv=pord[bv]||0;}
+      if(av<bv) return -sortDir; if(av>bv) return sortDir; return 0;
+    });
+  }
+  ['name','status','priority','due'].forEach(c=>{
+    const el=document.getElementById('sort-'+c);
+    if(el) el.textContent = sortCol===c ? (sortDir===1?'↑':'↓') : '';
+  });
+
+  list.forEach(p=>{
+    const notesHtml=[
+      p.notes?`<div>${p.notes.replace(/\n/g,'<br>')}</div>`:'',
+      ...p.links.map(l=>`<a class="notes-link" href="${l.url}" target="_blank">${l.label}</a>`)
+    ].filter(Boolean).join('');
+
+    const tr=document.createElement('tr');
+    tr.className='proj-row';
+    tr.innerHTML=`
+      <td>
+        <div class="name-cell">
+          <button class="tog${p.open?' open':''}" onclick="toggle(${p.id})" title="Toggle subtasks">▶</button>
+          <div style="flex:1;min-width:0">
+            <div contenteditable="true" onblur="editName(${p.id},this.textContent)" style="outline:none;word-break:break-word">${p.name}</div>
+            ${subProgress(p)}
+          </div>
+        </div>
+      </td>
+      <td class="notes-cell">${notesHtml}</td>
+      <td>
+        <select style="font-size:11px;padding:2px 4px;height:auto" onchange="editField(${p.id},'status',this.value)">
+          <option value="not"${p.status==='not'?' selected':''}>Not started</option>
+          <option value="prog"${p.status==='prog'?' selected':''}>In progress</option>
+          <option value="done"${p.status==='done'?' selected':''}>Done</option>
+        </select>
+      </td>
+      <td>
+        <select style="font-size:11px;padding:2px 4px;height:auto" onchange="editField(${p.id},'priority',this.value)">
+          <option value=""${p.priority===''?' selected':''}>—</option>
+          <option value="high"${p.priority==='high'?' selected':''}>High</option>
+          <option value="med"${p.priority==='med'?' selected':''}>Medium</option>
+          <option value="low"${p.priority==='low'?' selected':''}>Low</option>
+        </select>
+      </td>
+      <td><input type="date" value="${p.due||''}" style="font-size:11px;padding:2px 4px;height:auto;border:0.5px solid var(--color-border-tertiary);border-radius:4px;background:transparent;color:var(--color-text-primary)" onchange="editField(${p.id},'due',this.value)"></td>
+      <td style="text-align:center"><button class="act-btn" onclick="deleteProject(${p.id})" title="Delete">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+
+    if(p.open){
+      p.subtasks.forEach(st=>{
+        const sr=document.createElement('tr');
+        sr.className='sub-row';
+        sr.innerHTML=`<td colspan="5">
+          <div class="sub-label">
+            <input type="checkbox" class="sub-check" ${st.done?'checked':''} onchange="toggleSub(${p.id},${st.id},this.checked)">
+            <span class="${st.done?'sub-done':''}" contenteditable="true" onblur="editSub(${p.id},${st.id},this.textContent)" style="outline:none;flex:1">${st.text}</span>
+          </div>
+        </td>
+        <td><button class="act-btn" onclick="deleteSub(${p.id},${st.id})">✕</button></td>`;
+        tbody.appendChild(sr);
+      });
+      const ar=document.createElement('tr');
+      ar.className='add-sub-row';
+      ar.innerHTML=`<td colspan="6"><button class="add-sub-btn" onclick="addSub(${p.id})">+ Add subtask</button></td>`;
+      tbody.appendChild(ar);
+    }
+  });
+
+  const foot=document.createElement('tr');
+  foot.innerHTML=`<td colspan="6"><div class="add-row" onclick="focusNew()">+ New page</div></td>`;
+  tbody.appendChild(foot);
+  renderStats();
+}
+
+function renderStats(){
+  const total=projects.length;
+  const done=projects.filter(p=>p.status==='done').length;
+  const allSubs=projects.flatMap(p=>p.subtasks);
+  const subsDone=allSubs.filter(s=>s.done).length;
+  document.getElementById('stats').innerHTML=`
+    <div class="stat"><div class="stat-label">Projects</div><div class="stat-val">${total}</div></div>
+    <div class="stat"><div class="stat-label">Completed</div><div class="stat-val">${done}</div></div>
+    <div class="stat"><div class="stat-label">Subtasks done</div><div class="stat-val">${subsDone}/${allSubs.length}</div></div>
+  `;
+}
+
+function toggle(id){const p=projects.find(x=>x.id===id);if(p){p.open=!p.open;render();}}
+function editName(id,val){const p=projects.find(x=>x.id===id);if(p&&val.trim()){p.name=val.trim();save();}}
+function editField(id,field,val){const p=projects.find(x=>x.id===id);if(p){p[field]=val;render();}}
+function editSub(pid,sid,val){const p=projects.find(x=>x.id===pid);if(p){const s=p.subtasks.find(x=>x.id===sid);if(s&&val.trim()){s.text=val.trim();save();}}}
+function toggleSub(pid,sid,val){const p=projects.find(x=>x.id===pid);if(p){const s=p.subtasks.find(x=>x.id===sid);if(s){s.done=val;render();}}}
+function deleteSub(pid,sid){const p=projects.find(x=>x.id===pid);if(p){p.subtasks=p.subtasks.filter(s=>s.id!==sid);render();}}
+function deleteProject(id){if(confirm('Delete this project?')){projects=projects.filter(p=>p.id!==id);render();}}
+function addSub(pid){
+  const text=prompt('Subtask name:');
+  if(!text) return;
+  const p=projects.find(x=>x.id===pid);
+  if(p){p.subtasks.push({id:nextSub++,text:text.trim(),done:false});render();}
+}
+function addProject(){
+  const name=document.getElementById('new-proj').value.trim();
+  if(!name) return;
+  const status=document.getElementById('new-status').value;
+  const priority=document.getElementById('new-priority').value;
+  const due=document.getElementById('new-due').value;
+  projects.push({id:nextId++,name,status,priority,due,notes:'',links:[],subtasks:[],open:false});
+  document.getElementById('new-proj').value='';
+  document.getElementById('new-due').value='';
+  render();
+}
+function focusNew(){document.getElementById('new-proj').focus();}
+function sortBy(col){
+  if(sortCol===col){sortDir*=-1;}else{sortCol=col;sortDir=1;}
+  render();
+}
+
+render();
+</script>
