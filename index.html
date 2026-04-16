@@ -257,6 +257,16 @@ if(savedSel){var sel=window.getSelection();sel.removeAllRanges();sel.addRange(sa
 document.execCommand("insertHTML",false,'<a href="'+url+'" target="_blank" rel="noopener">'+( txt||url)+"</a>");
 toggleLink();savedSel=null;
 }
+document.getElementById("mo").addEventListener("paste",function(e){
+var sel=window.getSelection();
+if(!sel||!sel.toString().trim())return;
+var text=e.clipboardData&&e.clipboardData.getData("text/plain");
+if(!text||!text.match(/^https?:\/\//))return;
+e.preventDefault();
+document.execCommand("createLink",false,text.trim());
+var links=document.getElementById("mo").querySelectorAll("a");
+links.forEach(function(a){a.target="_blank";a.rel="noopener";});
+});
 document.addEventListener("keyup",function(e){
 var mo=document.getElementById("mo");
 if(!mo||!mo.contains(e.target))return;
