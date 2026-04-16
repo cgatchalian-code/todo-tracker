@@ -55,8 +55,8 @@ thead th:hover{color:var(--ink)}
 thead th.sa{color:var(--accent)}
 .pr td{padding:13px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13.5px;color:var(--ink);background:#fff;transition:background 0.1s}
 .pr:hover td{background:#fafaf9}
-.xr td{padding:6px 14px 6px 42px;background:#fafaf9;border-bottom:1px solid var(--border);font-size:12px;color:var(--ink3)}
-.xar td{padding:5px 14px 5px 42px;background:#fafaf9;border-bottom:1px solid var(--border)}
+.xr td{padding:6px 10px 6px 14px;background:#fafaf9;border-bottom:1px solid var(--border);font-size:12px;color:var(--ink3)}
+.xar td{padding:5px 14px;background:#fafaf9;border-bottom:1px solid var(--border)}
 .anr td{padding:11px 14px;background:#fff;color:var(--ink4);font-size:13px;cursor:pointer;transition:color 0.1s,background 0.1s}
 .anr:hover td{color:var(--ink2);background:#fafaf9}
 .ar-row td{padding:13px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13.5px;color:var(--ink3);background:#fff;transition:background 0.1s}
@@ -291,15 +291,16 @@ function render(){
         var sr=document.createElement('tr');sr.className='xr';
         var tsHtml=st.completedAt?'<span class="sub-ts">&#10003; '+fmtTs(st.completedAt)+'</span>':'';
         var dueChip=subDueChip(st);
-        sr.innerHTML='<td colspan="4"><div class="slr">'
+        var subOverdue=st.due&&st.due<new Date().toISOString().split('T')[0]&&!st.done;
+        sr.innerHTML='<td colspan="2"><div class="slr" style="padding-left:28px">'
           +'<input type="checkbox" class="sc" '+(st.done?'checked':'')+' data-pid="'+p.id+'" data-sid="'+st.id+'">'
-          +'<span class="'+(st.done?'sdone':'')+'" contenteditable="true" data-esub="'+p.id+'-'+st.id+'" style="outline:none">'+st.text+'</span>'
-          +dueChip+tsHtml
+          +'<span class="'+(st.done?'sdone':'')+'" contenteditable="true" data-esub="'+p.id+'-'+st.id+'" style="outline:none;flex:1;min-width:0">'+st.text+'</span>'
           +'</div></td>'
-          +'<td colspan="2"><div style="display:flex;align-items:center;gap:6px;justify-content:flex-end">'
-          +'<input type="date" class="sub-due'+(st.due&&st.due<new Date().toISOString().split('T')[0]&&!st.done?' overdue':'')+'" value="'+(st.due||'')+'" data-sdid="'+p.id+'-'+st.id+'" title="Subtask due date">'
-          +'<button class="act" data-dsub="'+p.id+'-'+st.id+'">&#10005;</button>'
-          +'</div></td>';
+          +'<td>'+tsHtml+'</td>'
+          +'<td>'+dueChip+'</td>'
+          +'<td><input type="date" class="sub-due'+(subOverdue?' overdue':'')+'" value="'+(st.due||'')+'" data-sdid="'+p.id+'-'+st.id+'" title="Due date" style="width:100%"></td>'
+          +'<td style="text-align:right"><button class="act" data-dsub="'+p.id+'-'+st.id+'">&#10005;</button></td>'
+          +'<td></td>';
         tbody.appendChild(sr);
       });
       var ar=document.createElement('tr');ar.className='xar';
