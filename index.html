@@ -255,7 +255,12 @@ var defs=[
 ];
 function load(){
   try{
-    var d=localStorage.getItem(STORE);
+    // Try current key first, then fall back to old keys in order
+    var d=localStorage.getItem(STORE)
+      ||localStorage.getItem('todo_v6')
+      ||localStorage.getItem('todo_v5')
+      ||localStorage.getItem('todo_v4')
+      ||localStorage.getItem('todo_v3');
     var p=d?JSON.parse(d):JSON.parse(JSON.stringify(defs));
     p.forEach(function(proj){
       if(!proj.notesHtml && proj.notes){
