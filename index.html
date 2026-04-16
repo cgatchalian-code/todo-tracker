@@ -184,7 +184,7 @@ function rStats(){
   var tot=projects.length;
   var done=projects.filter(function(p){return p.status==='done';}).length;
   var prog=projects.filter(function(p){return p.status==='prog';}).length;
-  var allS=projects.reduce(function(a,p){return a.concat(p.subtasks);});
+  var allS=[];projects.forEach(function(p){allS=allS.concat(p.subtasks);});
   var sD=allS.filter(function(s){return s.done;}).length;
   var tod=new Date().toISOString().split('T')[0];
   var ov=projects.filter(function(p){return p.due&&p.due<tod&&p.status!=='done';}).length;
