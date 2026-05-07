@@ -228,7 +228,7 @@ thead th.sa{color:var(--accent)}
 </div>
 <script>
 var STORE="todo_v7";
-var sortCol=null,sortDir=1,editId=null,nId=500,nSub=9000,curTab="active",savedSel=null;
+var sortCol=null,sortDir=1,editId=null,nId=500,nSub=9000,curTab="active",savedSel=null,addingSubFor=null,focusInlineSub=false;
 var defs=[
 {id:1,name:"Arena Super User - Items World",status:"done",priority:"",due:"",notesHtml:"<div>Resources:</div>",subtasks:[{id:101,text:"Review Items World overview doc",done:true,due:"",completedAt:"2026-04-01 09:00"},{id:102,text:"Complete super user certification",done:true,due:"",completedAt:"2026-04-01 10:30"}],open:false,archivedAt:"2026-04-01"},
 {id:2,name:"Pop 7 Visual Guide",status:"not",priority:"med",due:"",notesHtml:"",subtasks:[],open:false,archivedAt:null},
@@ -381,7 +381,11 @@ sr.innerHTML='<td colspan="2" style="padding-left:36px"><div class="slr"><input 
 tbody.appendChild(sr);
 });
 var ar=document.createElement("tr");ar.className="xar";
+if(addingSubFor===p.id){
+ar.innerHTML='<td colspan="6" style="padding-left:36px"><div style="display:flex;gap:6px;align-items:center"><input type="text" id="inline-sub-input" placeholder="Subtask name..." style="flex:1;border:1px solid var(--border2);border-radius:var(--r);padding:5px 9px;font-size:13px;font-family:&apos;DM Sans&apos;,sans-serif;outline:none;background:#fff" data-inline-sub="'+p.id+'"><button class="ba" style="height:28px;padding:4px 14px;font-size:12px" data-inline-sub-add="'+p.id+'">Add</button><button class="asb" data-inline-sub-cancel="1" style="padding:0 6px;font-size:14px">&#10005;</button></div></td>';
+}else{
 ar.innerHTML='<td colspan="6" style="padding-left:36px"><button class="asb" data-addsub="'+p.id+'">+ Add subtask</button></td>';
+}
 tbody.appendChild(ar);
 }
 });
@@ -390,6 +394,7 @@ f.innerHTML='<td colspan="6" id="newrow">+ New project</td>';
 tbody.appendChild(f);
 rStats();
 if(curTab==="archive")renderArchive();
+if(focusInlineSub){var ii=document.getElementById("inline-sub-input");if(ii)ii.focus();focusInlineSub=false;}
 }
 document.addEventListener("click",function(e){
 var t=e.target;
@@ -398,7 +403,9 @@ if(t.dataset.id&&t.classList.contains("tg")){var p=projects.find(function(x){ret
 else if(t.dataset.edit){openModal(parseInt(t.dataset.edit));}
 else if(t.dataset.restore){var p=projects.find(function(x){return x.id==t.dataset.restore;});if(p){p.status="not";p.archivedAt=null;render();renderArchive();}}
 else if(t.dataset.del){if(confirm("Delete this project permanently?")){projects=projects.filter(function(p){return p.id!=t.dataset.del;});render();if(curTab==="archive")renderArchive();}}
-else if(t.dataset.addsub){var txt=prompt("Subtask name:");if(txt){var pp=projects.find(function(x){return x.id==t.dataset.addsub;});if(pp){pp.subtasks.push({id:nSub++,text:txt.trim(),done:false,due:"",completedAt:null});render();}}}
+else if(t.dataset.addsub){addingSubFor=parseInt(t.dataset.addsub);focusInlineSub=true;render();}
+else if(t.dataset.inlineSubAdd){inlineSubAdd(parseInt(t.dataset.inlineSubAdd));}
+else if(t.dataset.inlineSubCancel){addingSubFor=null;render();}
 else if(t.dataset.dsub){var ids=t.dataset.dsub.split("-");var ppp=projects.find(function(x){return x.id==ids[0];});if(ppp){ppp.subtasks=ppp.subtasks.filter(function(s){return s.id!=ids[1];});render();}}
 else if(t.dataset.msubDel){var pm=projects.find(function(x){return x.id===editId;});if(pm){pm.subtasks=pm.subtasks.filter(function(s){return s.id!=t.dataset.msubDel;});save();renderSubModal();render();}}
 else if(t.id==="newrow"||t.id==="addBtn"){if(t.id==="addBtn")addProject();else document.getElementById("nn").focus();}
@@ -461,6 +468,15 @@ var safe=s.text.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"
 return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0"><input type="checkbox" class="sc" '+(s.done?"checked":"")+' data-msub-toggle="'+s.id+'"><input type="text" value="'+safe+'" data-msub-edit="'+s.id+'" style="flex:1;border:1px solid var(--border2);border-radius:var(--r);padding:5px 9px;font-family:\'DM Sans\',sans-serif;font-size:13px;color:'+(s.done?"var(--ink4)":"var(--ink)")+';background:#fff;outline:none'+(s.done?";text-decoration:line-through":"")+'"><button class="act" data-msub-del="'+s.id+'" title="Delete">&#10005;</button></div>';
 }).join("");
 }
+function inlineSubAdd(pid){
+var pp=projects.find(function(x){return x.id==pid;});
+var i=document.getElementById("inline-sub-input");
+if(pp&&i&&i.value.trim()){
+pp.subtasks.push({id:nSub++,text:i.value.trim(),done:false,due:"",completedAt:null});
+focusInlineSub=true;
+render();
+}
+}
 function addSubModal(){
 if(editId==null)return;
 var p=projects.find(function(x){return x.id===editId;});if(!p)return;
@@ -486,7 +502,13 @@ closeModal();render();
 }
 function exportData(){var d=JSON.stringify(projects,null,2);var b=new Blob([d],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="todo-backup-"+new Date().toISOString().slice(0,10)+".json";a.click();}
 function importData(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){try{var d=JSON.parse(ev.target.result);if(!Array.isArray(d))throw new Error("Invalid");projects=d;save();render();alert("Restored "+d.length+" projects!");}catch(err){alert("Invalid backup file");}};r.readAsText(f);}
-document.addEventListener("keydown",function(e){if(e.key==="Escape")closeModal();});
+document.addEventListener("keydown",function(e){
+if(e.target&&e.target.id==="inline-sub-input"){
+if(e.key==="Enter"){e.preventDefault();inlineSubAdd(parseInt(e.target.dataset.inlineSub));return;}
+if(e.key==="Escape"){addingSubFor=null;render();return;}
+}
+if(e.key==="Escape")closeModal();
+});
 document.getElementById("nn").addEventListener("keydown",function(e){if(e.key==="Enter")addProject();});
 document.getElementById("msub-input").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addSubModal();}});
 render();
